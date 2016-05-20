@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web.Http;
 using System.Web.Cors;
 using System.Web.Http.Cors;
+using Newtonsoft.Json.Serialization;
 
 namespace Itsp365.InvoiceFormApp.Api
 {
@@ -20,10 +21,24 @@ namespace Itsp365.InvoiceFormApp.Api
             config.MapHttpAttributeRoutes();
 
             config.Routes.MapHttpRoute(
+             name: "GetAllInvoicesApi",
+             routeTemplate: "api/invoice",
+             defaults: new { controller = "Invoice", action = "Get" }
+         );
+
+            config.Routes.MapHttpRoute(
                 name: "DefaultApi",
-                routeTemplate: "api/{controller}/{id}",
-                defaults: new { id = RouteParameter.Optional }
+                routeTemplate: "api/{controller}/{reference}",
+                defaults: new { reference = RouteParameter.Optional }
             );
+
+            GlobalConfiguration.Configuration.Formatters.Remove(config.Formatters.XmlFormatter);
+
+            var jsonFormatter = GlobalConfiguration.Configuration.Formatters.JsonFormatter;
+            jsonFormatter.UseDataContractJsonSerializer = false;
+            jsonFormatter.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+
+            GlobalConfiguration.Configuration.Formatters.Add(jsonFormatter);
         }
     }
 }
