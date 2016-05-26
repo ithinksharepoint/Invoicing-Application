@@ -24,6 +24,7 @@ namespace Itsp365.InvoiceFormApp.Api.Models.Entities
         public string AddressCity { get; set; }
         public string AddressCounty { get; set; }
         public string AddressCountry { get; set; }
+        public string AddressPostCode { get; set; }
         public string AgencyName { get; set; }
         public string AgencyContact { get; set; }
 

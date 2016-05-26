@@ -14,7 +14,7 @@ namespace Itsp365.InvoiceFormApp.Controllers
         public IDictionary<string,string> Get()
         {
             var configuration = new Dictionary<string, string>();
-            configuration.Add("SharePointUrl", "https://ithinksharepointltd.sharepoint.com/sites/dev");
+            configuration.Add("SharePointUrl", "https://{sharepoint}.sharepoint.com/sites/dev");
 
             return configuration;
         }

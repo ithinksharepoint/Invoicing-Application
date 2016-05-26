@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 using System.Web.Http;
 using Itsp365.InvoiceFormApp.Api.Models.Entities;
 using Itsp365.InvoiceFormApp.Api.Repositories;
@@ -13,78 +14,96 @@ namespace Itsp365.InvoiceFormApp.Api.Controllers
     [Authorize()]
     public class InvoiceController : ApiController
     {
-        private InvoiceRepository _invoiceRepository = InvoiceRepository.GetCurrent();
+        private InvoiceRepository _invoiceRepository = null;
 
-
-        // GET api/values
-        public IEnumerable<InvoiceForm> Get()
+        public InvoiceController()
+            : base()
         {
-            return _invoiceRepository.GetAll();
+
         }
 
-        // GET api/values/5
-        public InvoiceForm Get(int id)
+        private async Task Initialise()
         {
-            var invoiceForm = Get().FirstOrDefault(i => i.Id == id);
-            if (invoiceForm == null)
+            _invoiceRepository = await InvoiceRepository.GetCurrent();
+        }
+
+        public async Task<IList<InvoiceForm>> Get()
+        {
+            IList<InvoiceForm> listOfForms = new List<InvoiceForm>();
+            try
             {
-                invoiceForm = new InvoiceNotFoundForm();
+                await Initialise();
+                listOfForms = _invoiceRepository.GetAll();
             }
-            return invoiceForm;
+            catch (Exception ex)
+            {
+                throw;
+            }
+
+            return listOfForms;
+
         }
 
         [HttpGet]
         // GET api/values/5
-        public InvoiceForm Get(string reference)
+        public async Task<InvoiceForm> Get(string reference)
         {
-            var invoiceForm = Get().FirstOrDefault(i => i.Reference == reference);
-            if (invoiceForm == null)
+            InvoiceForm invoiceForm = new InvoiceNotFoundForm();
+            try
             {
-                invoiceForm = new InvoiceNotFoundForm();
+                await Initialise();
+                invoiceForm = _invoiceRepository.Get(reference);
+
             }
+            catch (Exception ex)
+            {
+                throw;
+            }
+
             return invoiceForm;
         }
 
         [HttpPost]
         [Route("api/invoice/add")]
         // POST api/values
-        public void Post([FromBody]InvoiceForm invoice)
+        public async Task Post([FromBody]InvoiceForm invoice)
         {
-            _invoiceRepository.Add(invoice);
+            try
+            {
+                await Initialise();
+                await _invoiceRepository.Add(invoice);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+
         }
+
 
         [HttpPut]
         // PUT api/values/5
-        public void Put(string reference, [FromBody]InvoiceForm invoice)
+        public async Task Put(string reference, [FromBody]InvoiceForm invoice)
         {
-            _invoiceRepository.Update(invoice);
+            throw new NotImplementedException();
         }
 
         [HttpDelete]
         // DELETE api/values/5
-        public void Delete(int id)
+        public async Task Delete(int reference)
         {
-            _invoiceRepository.Remove(id);
+            try
+            {
+                await Initialise();
+                await _invoiceRepository.Remove(reference);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+
         }
 
-        public HttpResponseMessage DownloadFile()
-        {
-            var responseMessage = new HttpResponseMessage();
-            var localFilePath = System.Web.HttpContext.Current.Server.MapPath("~/test.pdf");
-            if (!System.IO.File.Exists(localFilePath))
-            {
-                responseMessage = Request.CreateResponse(HttpStatusCode.Gone);
-            }
-            else
-            {
-                responseMessage = Request.CreateResponse(HttpStatusCode.OK);
-                responseMessage.Content = new StreamContent(new FileStream(localFilePath, FileMode.Open, FileAccess.Read));
-                responseMessage.Content.Headers.ContentDisposition = new System.Net.Http.Headers.ContentDispositionHeaderValue("attachment");
-                responseMessage.Content.Headers.ContentDisposition.FileName = System.IO.Path.GetFileName(localFilePath);
-            }
-            return responseMessage;
-        }
     }
-
 
 }
